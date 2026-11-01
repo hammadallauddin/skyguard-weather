@@ -26,7 +26,7 @@ for (const { src, dest } of scriptsToCopy) {
         if (!existsSync(destDir)) {
             mkdirSync(destDir, { recursive: true });
         }
-        cpSync(src, dest, { recursive: true, mode: 0o755 });
+        cpSync(src, dest, { recursive: true });
         console.log(`Copied: ${dest}`);
     }
 }
