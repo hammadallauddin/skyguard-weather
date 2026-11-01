@@ -120,11 +120,11 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 });
 
 // Parse CLI args
-const args = process.argv.slice(2);
+const cliArgs = process.argv.slice(2);
 
-if (args[0] === "weather" || args[0] === "w") {
-    await cmdWeather(args.slice(1));
-} else if (args[0] === "config") {
+if (cliArgs[0] === "weather" || cliArgs[0] === "w") {
+    await cmdWeather(cliArgs.slice(1));
+} else if (cliArgs[0] === "config") {
     console.log("SkyGuard Weather Configuration");
     console.log("============================");
     console.log("Environment variables:");

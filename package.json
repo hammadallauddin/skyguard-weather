@@ -7,7 +7,7 @@
         "skyguard": "dist/cli.js"
     },
     "scripts": {
-        "build": "tsc && node scripts/copy-to-dist.cjs",
+        "build": "tsc && node scripts/copy-to-dist.mjs",
         "start": "node dist/mcp-server.js",
         "dev": "tsx src/mcp-server.ts",
         "cli": "node dist/cli.js",
