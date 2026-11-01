@@ -26,7 +26,7 @@ That's it! You're ready to check weather from your terminal.
 
 ```bash
 # Publish to GitHub first (see README for details)
-claude plugin install github:your-username/skyguard-weather
+claude plugin install github:hammadallauddin/skyguard-weather
 ```
 
 ### Direct CLI Installation
@@ -294,11 +294,11 @@ This project can be installed as a Claude Code plugin! You can install it either
 
 ### Option 1: From GitHub (Recommended)
 
-1. **Create a GitHub repository** and push this project to it (e.g., `github:your-username/skyguard-weather`)
+1. **Create a GitHub repository** and push this project to it (e.g., `github:hammadallauddin/skyguard-weather`)
 
 2. **Install the plugin** in Claude Code:
    ```bash
-   claude plugin install github:your-username/skyguard-weather
+   claude plugin install github:hammadallauddin/skyguard-weather
    ```
 
 3. **Restart Claude Code** to activate the plugin
@@ -350,13 +350,13 @@ If you want to publish this project to GitHub yourself:
 2. Initialize git locally (already done in this project)
 3. Push to GitHub:
    ```bash
-   git remote add origin https://github.com/your-username/skyguard-weather.git
+   git remote add origin https://github.com/hammadallauddin/skyguard-weather.git
    git branch -M main
    git push -u origin main
    ```
 4. Install in Claude Code:
    ```bash
-   claude plugin install github:your-username/skyguard-weather
+   claude plugin install github:hammadallauddin/skyguard-weather
    ```
 
 
