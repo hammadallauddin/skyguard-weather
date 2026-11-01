@@ -1,0 +1,6 @@
+node_modules/
+dist/
+weather.db
+.skyguard.log
+*.log
+.DS_Store

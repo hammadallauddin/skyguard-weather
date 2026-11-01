@@ -1,0 +1,19 @@
+{
+    "name": "skyguard-weather",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/mcp-server.js"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.1",
+        "sqlite3": "^5.1.7",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "@types/sqlite3": "^3.1.11",
+        "typescript": "^5.3.3"
+    }
+}
