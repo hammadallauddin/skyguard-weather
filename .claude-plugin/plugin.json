@@ -1,8 +1,0 @@
-{
-    "name": "skyguard-weather",
-    "version": "1.0.0",
-    "description": "Monitors real-time weather and alerts on severe environmental conditions.",
-    "author": {
-        "name": "Muhammad Hammad"
-    }
-}
