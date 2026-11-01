@@ -1,5 +1,236 @@
 # SkyGuard Weather
 
+A real-time weather monitoring and safety alert system for Claude Code. Fetch weather data, log observations, and get safety alerts with simple commands.
+
+## Quick Start
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Build and setup
+npm run build
+
+# 3. Use it immediately
+npm run cli weather Karachi
+npm run cli weather -- --lat 51.5 --lon -0.1278 --city London
+```
+
+That's it! You're ready to check weather from your terminal.
+
+---
+
+## Installation
+
+### As a Claude Code Plugin (Recommended)
+
+```bash
+# Publish to GitHub first (see README for details)
+claude plugin install github:your-username/skyguard-weather
+```
+
+### Direct CLI Installation
+
+```bash
+npm install
+npm run build
+npx skyguard weather Karachi
+```
+
+---
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `skyguard weather <city>` | Check weather for any city |
+| `skyguard weather --lat 51.5 --lon -0.1278` | Check by coordinates |
+| `skyguard weather --all` | View recent logs |
+| `skyguard init` | Initialize database |
+| `skyguard config` | Show configuration |
+
+---
+
+## Usage Examples
+
+### Check Weather for a City
+
+```bash
+npm run cli weather Karachi
+```
+
+**Output:**
+```json
+{
+  "city": "Karachi",
+  "temperature_celsius": 32.5,
+  "humidity_percent": 68,
+  "rain_mm": 0.0,
+  "wind_speed_kmh": 22.1,
+  "timestamp": "2026-11-01T12:00:00"
+}
+```
+
+### Use Coordinates
+
+```bash
+npm run cli weather -- --lat 51.5 --lon -0.1278 --city London
+```
+
+### View Recent Logs
+
+```bash
+npm run cli weather -- --all
+```
+
+### Initialize Database
+
+```bash
+npm run cli init
+```
+
+---
+
+## MCP Server (For Claude Code)
+
+Once installed as a plugin, the `get_weather` tool is available in Claude Code:
+
+```
+User: Check weather in Karachi
+Assistant: ← Calls get_weather tool → Returns weather data + safety assessment
+```
+
+### MCP Configuration
+
+For Claude Code users, add to `.mcp.json`:
+
+```json
+{
+    "mcpServers": {
+        "skyguard-weather": {
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/dist/mcp-server.js"]
+        }
+    }
+}
+```
+
+---
+
+## Safety Evaluation Rules
+
+| Condition | Severity | Label |
+|-----------|----------|-------|
+| Rain > 0.0 mm | Advisory | `[ADVISORY]` |
+| Wind > 30 km/h | Warning | `[WARNING]` |
+| Temperature > 38°C | Alert | `[HEAT ALERT]` |
+
+**Example:** Karachi (41.2°C) → `[HEAT ALERT]` - Stay hydrated, avoid outdoor activities during peak hours.
+
+---
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SKYGUARD_DB_PATH` | `./weather.db` | SQLite database location |
+| `SKYGUARD_LOG_FILE` | `.skyguard.log` | Audit log location |
+| `SKYGUARD_API_URL` | `https://api.open-meteo.com/v1/forecast` | Weather API URL |
+
+### MCP Configuration
+
+```json
+{
+    "mcpServers": {
+        "skyguard-weather": {
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/dist/mcp-server.js"]
+        }
+    }
+}
+```
+
+---
+
+## Directory Structure
+
+```
+skyguard-weather/
+├── agents/                    # Agent definitions
+│   └── weather-investigator.md     # Weather safety checking subagent
+├── commands/                  # User commands
+│   └── check-weather.md           # City-based weather check command
+├── hooks/                     # PreToolUse hooks
+│   ├── hooks.json                  # Hook configuration
+│   └── scripts/
+│       └── audit.sh                # Tool call audit script
+├── scripts/                   # Utility scripts
+│   ├── setup-plugin.cjs              # Plugin publishing script
+│   └── copy-to-dist.cjs            # Build helper
+├── skills/                    # Skill definitions
+│   └── skyguard-analyzer/         # Weather risk evaluation skill
+│       └── SKILL.md                # Risk categorization rules
+├── src/                       # TypeScript source
+│   ├── cli.ts                      # Command line interface
+│   └── mcp-server.ts               # MCP server implementation
+├── dist/                      # Compiled output (generated)
+├── .mcp.json                  # MCP server configuration
+├── .claude-plugin/            # Claude plugin metadata
+│   └── plugin.json
+├── README.md
+└── package.json
+```
+
+---
+
+## Data Storage
+
+Weather observations are stored in `weather.db` (SQLite):
+
+```sql
+CREATE TABLE weather_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    city TEXT,
+    temperature REAL,
+    humidity REAL,
+    rain REAL,
+    wind_speed REAL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Query with:
+```bash
+sqlite3 weather.db "SELECT * FROM weather_logs;"
+```
+
+---
+
+## Development
+
+### Building
+
+```bash
+npm run build
+```
+
+### Running
+
+```bash
+npm run dev      # Development mode
+npm run start    # Production mode
+npm run cli      # CLI mode
+```
+
+---
+
+## License
+
+MIT
+# SkyGuard Weather
+
 A Model Context Protocol (MCP) server that monitors real-time weather conditions and alerts on severe environmental conditions. It provides a `get_weather` tool for fetching weather data, logs all observations to SQLite, and includes an agent, skill, command, and hooks system for safety analysis.
 
 ## Features

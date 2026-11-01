@@ -1,11 +1,29 @@
 {
     "name": "skyguard-weather",
     "version": "1.0.0",
+    "description": "A real-time weather monitoring and safety alert MCP server built for Claude Code",
     "type": "module",
-    "scripts": {
-        "build": "tsc",
-        "start": "node dist/mcp-server.js"
+    "bin": {
+        "skyguard": "dist/cli.js"
     },
+    "scripts": {
+        "build": "tsc && node scripts/copy-to-dist.cjs",
+        "start": "node dist/mcp-server.js",
+        "dev": "tsx src/mcp-server.ts",
+        "cli": "node dist/cli.js",
+        "setup-plugin": "node scripts/setup-plugin.cjs",
+        "test": "echo \"No tests yet\" && exit 0"
+    },
+    "keywords": [
+        "weather",
+        "mcp",
+        "claude",
+        "safety",
+        "alerts",
+        "monitoring"
+    ],
+    "author": "Muhammad Hammad",
+    "license": "MIT",
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.0.1",
         "sqlite3": "^5.1.7",
@@ -14,6 +32,7 @@
     "devDependencies": {
         "@types/node": "^20.11.0",
         "@types/sqlite3": "^3.1.11",
+        "tsx": "^4.19.0",
         "typescript": "^5.3.3"
     }
 }
