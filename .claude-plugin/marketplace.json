@@ -1,0 +1,15 @@
+{
+    "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+    "name": "skyguard",
+    "owner": {
+        "name": "Muhammad Hammad"
+    },
+    "plugins": [
+        {
+            "name": "skyguard-weather",
+            "description": "Monitors real-time weather and alerts on severe environmental conditions.",
+            "source": "./",
+            "category": "productivity"
+        }
+    ]
+}
