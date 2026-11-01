@@ -137,6 +137,230 @@ The skyguard-analyzer skill categorizes weather conditions:
 | Wind > 30 km/h | Warning | [WARNING] |
 | Temperature > 38°C | Alert | [HEAT ALERT] |
 
+
+## Examples
+
+### Example 1: Basic Weather Check with get_weather Tool
+
+**Input:**
+```json
+{
+    "latitude": 25.2048,
+    "longitude": 55.2708,
+    "city_name": "Dubai"
+}
+```
+
+**Output:**
+```json
+{
+  "city": "Dubai",
+  "temperature_celsius": 36.2,
+  "humidity_percent": 45,
+  "rain_mm": 0.0,
+  "wind_speed_kmh": 18.5,
+  "timestamp": "2026-11-01T14:30:00"
+}
+```
+
+**Safety Assessment:**
+- Rain: 0.0 mm → No advisory (no precipitation)
+- Wind: 18.5 km/h → No warning (below 30 km/h threshold)
+- Temperature: 36.2°C → No heat alert (below 38°C threshold)
+
+**Result:** Safe to travel. Normal weather conditions.
+
+---
+
+### Example 2: Checking Heat Alert Conditions
+
+**Input:**
+```json
+{
+    "latitude": 30.0444,
+    "longitude": 31.2357,
+    "city_name": "Cairo"
+}
+```
+
+**Output:**
+```json
+{
+  "city": "Cairo",
+  "temperature_celsius": 40.1,
+  "humidity_percent": 22,
+  "rain_mm": 0.0,
+  "wind_speed_kmh": 12.0,
+  "timestamp": "2026-11-01T12:00:00"
+}
+```
+
+**Safety Assessment:**
+- Rain: 0.0 mm → No advisory
+- Wind: 12.0 km/h → No warning
+- Temperature: 40.1°C → **Heat Alert** (above 38°C threshold)
+
+**Result:** [HEAT ALERT] Extreme heat warning. Recommend:
+- Avoid outdoor activities during peak hours (12:00-16:00)
+- Stay hydrated
+- Check on vulnerable populations
+
+---
+
+### Example 3: Rain Advisory Conditions
+
+**Input:**
+```json
+{
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "city_name": "New York"
+}
+```
+
+**Output:**
+```json
+{
+  "city": "New York",
+  "temperature_celsius": 15.3,
+  "humidity_percent": 85,
+  "rain_mm": 5.2,
+  "wind_speed_kmh": 25.1,
+  "timestamp": "2026-11-01T13:00:00"
+}
+```
+
+**Safety Assessment:**
+- Rain: 5.2 mm → **Advisory** (above 0.0 mm threshold)
+- Wind: 25.1 km/h → No warning
+- Temperature: 15.3°C → No heat alert
+
+**Result:** [ADVISORY] Rain expected. Recommend:
+- Carry umbrella
+- Expect slippery roads
+- Allow extra travel time
+
+---
+
+### Example 4: Wind Warning Conditions
+
+**Input:**
+```json
+{
+    "latitude": 55.9533,
+    "longitude": -3.1883,
+    "city_name": "Edinburgh"
+}
+```
+
+**Output:**
+```json
+{
+  "city": "Edinburgh",
+  "temperature_celsius": 8.7,
+  "humidity_percent": 78,
+  "rain_mm": 0.3,
+  "wind_speed_kmh": 42.5,
+  "timestamp": "2026-11-01T14:00:00"
+}
+```
+
+**Safety Assessment:**
+- Rain: 0.3 mm → Advisory
+- Wind: 42.5 km/h → **Warning** (above 30 km/h threshold)
+- Temperature: 8.7°C → No heat alert
+
+**Result:** [WARNING] Strong winds. Recommend:
+- Secure loose outdoor items
+- Exercise caution cycling or Motorbiking
+- Be aware of flying debris
+
+---
+
+### Example 5: Using the /check-weather Command
+
+```bash
+# Check weather for any city
+/check-weather Karachi
+
+# Example output (conceptual):
+# ==========================================
+# WEATHER CHECK: Karachi, Pakistan
+# ==========================================
+# Temperature: 32.5°C
+# Humidity: 68%
+# Rain: 0.0 mm
+# Wind: 22.1 km/h
+#
+# [ADVISORY] Rain detected in nearby areas
+# [OK] Conditions acceptable for outdoor activities
+# ==========================================
+```
+
+---
+
+### Example 6: Using the weather-investigator Agent
+
+When Claude needs a detailed weather safety assessment for a specific location:
+
+```
+User: "Check if it's safe to hike in the mountains near Shimla for tomorrow"
+
+Claude: (invokes weather-investigator agent)
+         → Fetches current weather at Shimla coordinates
+         → Analyzes conditions
+         → Returns safety assessment
+
+Agent Output:
+"⚠️ Weather Safety Assessment for Shimla Mountains
+
+- Temperature: 14.2°C, Wind: 35.8 km/h → [WARNING] Gusty conditions
+- Rain: 2.1 mm → [ADVISORY] Possible rain
+- Recommendation: Use trekking poles, avoid exposed ridges during high winds"
+```
+
+---
+
+### Example 7: Querying Historical Weather Data
+
+```bash
+# Query the SQLite database for recent logs
+sqlite3 weather.db "SELECT city, temperature, wind_speed, timestamp FROM weather_logs ORDER BY timestamp DESC LIMIT 5;"
+
+# Example output:
+# city     | temperature | wind_speed | timestamp
+# -------- | ----------- | ---------- | -------------------
+# Karachi  | 32.5        | 22.1       | 2026-11-01 12:00:00
+# Lahore   | 30.1        | 15.3       | 2026-11-01 11:00:00
+# Islamabad| 28.4        | 12.7       | 2026-11-01 10:00:00
+```
+
+---
+
+### Example 8: Complete Workflow - Multi-City Comparison
+
+```bash
+# Check multiple cities
+/check-weather Karachi
+/check-weather Lahore
+/check-weather Islamabad
+```
+
+Compare conditions and identify which city need should be prioritized for planning:
+
+```
+■ comparison:
+- Karachi: 32.5°C, Wind 22 km/h → [ADVISORY] Rain nearby
+- Lahore: 30.1°C, Wind 15 km/h → Safe
+- Islamabad: 28.4°C, Wind 12 km/h → Optimal conditions
+```
+
+---
+
+## License
+
+MIT
+
 Findings are formatted with clear headers and operational recommendations.
 
 ## Data Storage
