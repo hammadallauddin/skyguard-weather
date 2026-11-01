@@ -55,6 +55,80 @@ skyguard-weather/
    npm install
    ```
 
+
+
+## Plugin Installation
+
+This project can be installed as a Claude Code plugin! You can install it either:
+
+### Option 1: From GitHub (Recommended)
+
+1. **Create a GitHub repository** and push this project to it (e.g., `github:your-username/skyguard-weather`)
+
+2. **Install the plugin** in Claude Code:
+   ```bash
+   claude plugin install github:your-username/skyguard-weather
+   ```
+
+3. **Restart Claude Code** to activate the plugin
+
+### Option 2: Local Development Installation
+
+For local development, you can install directly from your filesystem:
+
+```bash
+# Replace with your local path
+claude plugin install ./skyguard-weather
+```
+
+### Verifying Installation
+
+After installation, verify the plugin is active:
+
+```bash
+claude plugin list
+```
+
+You should see `skyguard-weather` in the list.
+
+### Available Commands After Installation
+
+Once installed, you can use:
+
+```bash
+# Check weather for any city
+/check-weather Karachi
+/check-weather London
+/check-weather Tokyo
+
+# The get_weather MCP tool is available
+# The weather-investigator agent can be used for detailed checks
+```
+
+### Uninstalling
+
+```bash
+claude plugin uninstall skyguard-weather
+```
+
+## Setup from Scratch
+
+If you want to publish this project to GitHub yourself:
+
+1. Create a new repository on GitHub named `skyguard-weather`
+2. Initialize git locally (already done in this project)
+3. Push to GitHub:
+   ```bash
+   git remote add origin https://github.com/your-username/skyguard-weather.git
+   git branch -M main
+   git push -u origin main
+   ```
+4. Install in Claude Code:
+   ```bash
+   claude plugin install github:your-username/skyguard-weather
+   ```
+
+
 3. Build the TypeScript project:
    ```bash
    npm run build
