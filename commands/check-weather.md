@@ -1,8 +1,10 @@
 ---
-name: check-weather
 description: Check weather alerts for a city. Usage: /check-weather Karachi
+argument-hint: <city>
 ---
 
-1. Resolve lat/long coordinates for $ARG1.
-2. Invoke `get_weather` tool from the MCP server.
-3. Apply `skyguard-analyzer` skill rules to assess safety risk levels.
+Check the weather for: $ARGUMENTS
+
+1. Work out the latitude and longitude of that city.
+2. Call the `get_weather` tool from the skyguard-weather MCP server with those coordinates and the city name.
+3. Apply the `skyguard-analyzer` skill rules to the result and report the risk level.

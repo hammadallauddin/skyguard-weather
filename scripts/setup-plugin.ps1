@@ -57,7 +57,8 @@ Write-Host "  $RepoUrl" -ForegroundColor White
 Write-Host ""
 Write-Host "To install in Claude Code, run:" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  claude plugin install github:$GitHubUsername/$RepoName" -ForegroundColor Green
+Write-Host "  claude plugin marketplace add $GitHubUsername/$RepoName" -ForegroundColor Green
+Write-Host "  claude plugin install skyguard-weather@skyguard" -ForegroundColor Green
 Write-Host ""
 Write-Host "Then restart Claude Code to activate the plugin." -ForegroundColor Cyan
 Write-Host ""

@@ -1,13 +1,15 @@
 {
-    "PreToolUse": [
-        {
-            "matcher": "get_weather",
-            "hooks": [
-                {
-                    "type": "command",
-                    "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/audit.sh"
-                }
-            ]
-        }
-    ]
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "mcp__plugin_skyguard-weather_skyguard-weather__get_weather",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/audit.mjs\""
+                    }
+                ]
+            }
+        ]
+    }
 }
