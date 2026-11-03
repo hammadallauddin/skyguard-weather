@@ -29,19 +29,27 @@ To remove it: `claude plugin uninstall skyguard-weather`.
 
 | Component | Name | What it does |
 |---|---|---|
-| MCP tool | `get_weather` | Current temperature, humidity, rain and wind for a latitude/longitude |
-| Command | `/check-weather <city>` | Resolves the city, calls `get_weather`, applies the safety rules |
+| MCP tool | `get_weather` | Current temperature, humidity, rain and wind for a city or latitude/longitude |
+| Command | `/check-weather <city>` | Passes the city to `get_weather`, applies the safety rules |
 | Skill | `skyguard-analyzer` | Turns readings into advisories and alerts |
 | Agent | `weather-investigator` | Checks a location in its own context and returns 3 bullet points |
 | Hook | `PreToolUse` on `get_weather` | Appends each call to `audit.log` in the plugin's data directory |
 
 ### `get_weather`
 
-Input:
+Input (city name only):
+
+```json
+{ "city_name": "Karachi" }
+```
+
+Input (explicit coordinates):
 
 ```json
 { "latitude": 24.8607, "longitude": 67.0011, "city_name": "Karachi" }
 ```
+
+`city_name` is required. When `latitude` and `longitude` are omitted, the server geocodes the city first.
 
 Output:
 
@@ -98,8 +106,9 @@ The CLI resolves city names with the Open-Meteo geocoding API.
 
 ```bash
 npm install
-npm run build    # type-checks, then bundles src/ into dist/ with esbuild
+npm run build    # type-checks, then bundles src/ into dist/ with scripts/build.mjs
 npm run dev      # runs the MCP server from source
+npm test         # runs the CLI argument-parser tests
 claude plugin validate .
 ```
 

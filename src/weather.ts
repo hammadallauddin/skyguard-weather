@@ -3,6 +3,13 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 const API_URL = process.env.SKYGUARD_API_URL ?? "https://api.open-meteo.com/v1/forecast";
+const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
+
+export interface Coordinates {
+    latitude: number;
+    longitude: number;
+    city: string;
+}
 
 export interface WeatherReading {
     city: string;
@@ -22,6 +29,24 @@ export function dataDir(): string {
 }
 
 const logFile = () => join(dataDir(), "weather-log.jsonl");
+
+export async function geocodeCity(name: string): Promise<Coordinates> {
+    const city = name.trim();
+    if (!city) throw new Error("city name must not be empty");
+
+    const url = new URL(GEOCODING_URL);
+    url.searchParams.set("name", city);
+    url.searchParams.set("count", "1");
+    url.searchParams.set("language", "en");
+    url.searchParams.set("format", "json");
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Geocoding API returned ${res.status}`);
+    const hit = (await res.json()).results?.[0];
+    if (!hit) throw new Error(`No location found for "${name}"`);
+
+    return { latitude: hit.latitude, longitude: hit.longitude, city: hit.name };
+}
 
 export async function fetchWeather(latitude: number, longitude: number, city: string): Promise<WeatherReading> {
     if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) throw new Error(`Invalid latitude: ${latitude}`);

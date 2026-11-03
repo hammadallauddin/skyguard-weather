@@ -2,7 +2,7 @@
     "hooks": {
         "PreToolUse": [
             {
-                "matcher": "mcp__plugin_skyguard-weather_skyguard-weather__get_weather",
+                "matcher": "mcp__.*__get_weather",
                 "hooks": [
                     {
                         "type": "command",

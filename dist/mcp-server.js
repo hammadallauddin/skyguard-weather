@@ -14373,6 +14373,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 var API_URL = process.env.SKYGUARD_API_URL ?? "https://api.open-meteo.com/v1/forecast";
+var GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 function dataDir() {
   const candidates = [process.env.SKYGUARD_DATA_DIR, process.env.CLAUDE_PLUGIN_DATA];
   const dir = candidates.find((d) => d && !d.includes("${")) ?? join(homedir(), ".skyguard");
@@ -14380,6 +14381,20 @@ function dataDir() {
   return dir;
 }
 var logFile = () => join(dataDir(), "weather-log.jsonl");
+async function geocodeCity(name) {
+  const city = name.trim();
+  if (!city) throw new Error("city name must not be empty");
+  const url = new URL(GEOCODING_URL);
+  url.searchParams.set("name", city);
+  url.searchParams.set("count", "1");
+  url.searchParams.set("language", "en");
+  url.searchParams.set("format", "json");
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Geocoding API returned ${res.status}`);
+  const hit = (await res.json()).results?.[0];
+  if (!hit) throw new Error(`No location found for "${name}"`);
+  return { latitude: hit.latitude, longitude: hit.longitude, city: hit.name };
+}
 async function fetchWeather(latitude, longitude, city) {
   if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) throw new Error(`Invalid latitude: ${latitude}`);
   if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) throw new Error(`Invalid longitude: ${longitude}`);
@@ -14405,20 +14420,26 @@ async function fetchWeather(latitude, longitude, city) {
 }
 
 // src/mcp-server.ts
-var server = new Server({ name: "skyguard-weather", version: "1.1.0" }, { capabilities: { tools: {} } });
+var server = new Server({ name: "skyguard-weather", version: "1.2.0" }, { capabilities: { tools: {} } });
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: "get_weather",
-      description: "Fetches current temperature (\xB0C), humidity (%), rain (mm) and wind speed (km/h) for a location.",
+      description: "Fetches current temperature (\xB0C), humidity (%), rain (mm) and wind speed (km/h) for a city name or explicit coordinates. When latitude and longitude are omitted, the city name is geocoded first.",
       inputSchema: {
         type: "object",
         properties: {
-          latitude: { type: "number", description: "Latitude in decimal degrees" },
-          longitude: { type: "number", description: "Longitude in decimal degrees" },
-          city_name: { type: "string", description: "Name of the place, used as a label" }
+          city_name: { type: "string", description: "Name of the place to look up" },
+          latitude: {
+            type: "number",
+            description: "Latitude in decimal degrees. Optional when city_name is provided."
+          },
+          longitude: {
+            type: "number",
+            description: "Longitude in decimal degrees. Optional when city_name is provided."
+          }
         },
-        required: ["latitude", "longitude", "city_name"]
+        required: ["city_name"]
       }
     }
   ]
@@ -14427,7 +14448,24 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
   if (req.params.name !== "get_weather") throw new Error(`Unknown tool: ${req.params.name}`);
   const { latitude, longitude, city_name } = req.params.arguments ?? {};
   try {
-    const reading = await fetchWeather(Number(latitude), Number(longitude), String(city_name ?? "Unknown"));
+    const cityName = typeof city_name === "string" ? city_name.trim() : "";
+    if (!cityName) throw new Error("city_name is required");
+    let resolvedLatitude;
+    let resolvedLongitude;
+    let resolvedCity = cityName;
+    if (latitude !== void 0 || longitude !== void 0) {
+      if (typeof latitude !== "number" || typeof longitude !== "number") {
+        throw new Error("latitude and longitude must both be numbers");
+      }
+      resolvedLatitude = latitude;
+      resolvedLongitude = longitude;
+    } else {
+      const place = await geocodeCity(cityName);
+      resolvedLatitude = place.latitude;
+      resolvedLongitude = place.longitude;
+      resolvedCity = place.city;
+    }
+    const reading = await fetchWeather(resolvedLatitude, resolvedLongitude, resolvedCity);
     return { content: [{ type: "text", text: JSON.stringify(reading, null, 2) }] };
   } catch (e) {
     return { isError: true, content: [{ type: "text", text: e instanceof Error ? e.message : String(e) }] };

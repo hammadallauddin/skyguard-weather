@@ -1,10 +1,60 @@
 #!/usr/bin/env node
 
+// src/args.ts
+function parseWeatherArgs(args) {
+  const parsed = { all: false };
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === "--all") {
+      parsed.all = true;
+      continue;
+    }
+    if (arg === "--lat" || arg === "--lon" || arg === "--city") {
+      const value = args[i + 1];
+      if (value === void 0) {
+        throw new Error(`${arg} requires a value`);
+      }
+      i++;
+      if (arg === "--lat") {
+        const latitude = Number(value);
+        if (!Number.isFinite(latitude)) {
+          throw new Error(`--lat must be a number, got "${value}"`);
+        }
+        parsed.latitude = latitude;
+      } else if (arg === "--lon") {
+        const longitude = Number(value);
+        if (!Number.isFinite(longitude)) {
+          throw new Error(`--lon must be a number, got "${value}"`);
+        }
+        parsed.longitude = longitude;
+      } else {
+        if (!value.trim()) {
+          throw new Error("--city must not be empty");
+        }
+        parsed.city = value;
+      }
+      continue;
+    }
+    if (arg.startsWith("-")) {
+      throw new Error(`Unknown option: ${arg}`);
+    }
+    parsed.city = arg;
+  }
+  if (parsed.all && (parsed.city !== void 0 || parsed.latitude !== void 0 || parsed.longitude !== void 0)) {
+    throw new Error("--all cannot be combined with a city or coordinates");
+  }
+  if (parsed.latitude === void 0 !== (parsed.longitude === void 0)) {
+    throw new Error("Provide both --lat and --lon");
+  }
+  return parsed;
+}
+
 // src/weather.ts
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 var API_URL = process.env.SKYGUARD_API_URL ?? "https://api.open-meteo.com/v1/forecast";
+var GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 function dataDir() {
   const candidates = [process.env.SKYGUARD_DATA_DIR, process.env.CLAUDE_PLUGIN_DATA];
   const dir = candidates.find((d) => d && !d.includes("${")) ?? join(homedir(), ".skyguard");
@@ -12,6 +62,20 @@ function dataDir() {
   return dir;
 }
 var logFile = () => join(dataDir(), "weather-log.jsonl");
+async function geocodeCity(name) {
+  const city = name.trim();
+  if (!city) throw new Error("city name must not be empty");
+  const url = new URL(GEOCODING_URL);
+  url.searchParams.set("name", city);
+  url.searchParams.set("count", "1");
+  url.searchParams.set("language", "en");
+  url.searchParams.set("format", "json");
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Geocoding API returned ${res.status}`);
+  const hit = (await res.json()).results?.[0];
+  if (!hit) throw new Error(`No location found for "${name}"`);
+  return { latitude: hit.latitude, longitude: hit.longitude, city: hit.name };
+}
 async function fetchWeather(latitude, longitude, city) {
   if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) throw new Error(`Invalid latitude: ${latitude}`);
   if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) throw new Error(`Invalid longitude: ${longitude}`);
@@ -49,44 +113,48 @@ Usage:
   skyguard weather --lat <lat> --lon <lon> [--city <name>]
   skyguard weather --all                           Show the 20 most recent readings
   skyguard config                                  Show where readings are stored`;
-async function geocode(name) {
-  const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
-  url.searchParams.set("name", name);
-  url.searchParams.set("count", "1");
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Geocoding API returned ${res.status}`);
-  const hit = (await res.json()).results?.[0];
-  if (!hit) throw new Error(`No location found for "${name}"`);
-  return { latitude: hit.latitude, longitude: hit.longitude, name: hit.name };
-}
 async function cmdWeather(args) {
-  if (args.includes("--all")) {
-    for (const r of recentReadings()) {
-      console.log(`${r.city}: ${r.temperature_celsius}\xB0C, humidity ${r.humidity_percent}%, rain ${r.rain_mm}mm, wind ${r.wind_speed_kmh}km/h (${r.timestamp})`);
+  const parsed = parseWeatherArgs(args);
+  if (parsed.all) {
+    const readings = recentReadings();
+    if (readings.length === 0) {
+      console.log("No readings logged yet.");
+      return;
+    }
+    for (const r of readings) {
+      console.log(
+        `${r.city}: ${r.temperature_celsius}\xB0C, humidity ${r.humidity_percent}%, rain ${r.rain_mm}mm, wind ${r.wind_speed_kmh}km/h (${r.timestamp})`
+      );
     }
     return;
   }
-  let lat, lon, city;
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--lat") lat = parseFloat(args[++i]);
-    else if (args[i] === "--lon") lon = parseFloat(args[++i]);
-    else if (args[i] === "--city") city = args[++i];
-    else if (!args[i].startsWith("-")) city = args[i];
-  }
-  if (lat === void 0 || lon === void 0) {
+  let latitude = parsed.latitude;
+  let longitude = parsed.longitude;
+  let city = parsed.city;
+  if (latitude === void 0 || longitude === void 0) {
     if (!city) throw new Error(USAGE);
-    const place = await geocode(city);
-    ({ latitude: lat, longitude: lon } = place);
-    city = place.name;
+    const place = await geocodeCity(city);
+    latitude = place.latitude;
+    longitude = place.longitude;
+    city = place.city;
   }
-  console.log(JSON.stringify(await fetchWeather(lat, lon, city ?? `${lat},${lon}`), null, 2));
+  console.log(
+    JSON.stringify(
+      await fetchWeather(latitude, longitude, city ?? `${latitude},${longitude}`),
+      null,
+      2
+    )
+  );
 }
 var [cmd, ...rest] = process.argv.slice(2);
 try {
   if (cmd === "weather" || cmd === "w") await cmdWeather(rest);
-  else if (cmd === "config") console.log(`Readings are stored in ${dataDir()}/weather-log.jsonl
-Override with SKYGUARD_DATA_DIR; set SKYGUARD_API_URL to use another Open-Meteo endpoint.`);
-  else console.log(USAGE);
+  else if (cmd === "config") {
+    console.log(
+      `Readings are stored in ${dataDir()}/weather-log.jsonl
+Override with SKYGUARD_DATA_DIR; set SKYGUARD_API_URL to use another Open-Meteo endpoint.`
+    );
+  } else console.log(USAGE);
 } catch (e) {
   console.error(e instanceof Error ? e.message : e);
   process.exit(1);

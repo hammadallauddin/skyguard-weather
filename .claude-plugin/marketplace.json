@@ -1,6 +1,7 @@
 {
     "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
     "name": "skyguard",
+    "description": "Weather monitoring and safety alerts for Claude Code.",
     "owner": {
         "name": "Muhammad Hammad"
     },
